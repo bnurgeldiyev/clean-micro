@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "../../internal/adapters/api";
+
+// UserDelete
+message UserDeleteRequest {
+  string username = 1;
+}
+
+message UserDeleteResponse {
+  bool success = 1;
+}
+
+// UserUpdateUsername
+message UserUpdateUsernameRequest {
+  string oldUsername = 1;
+  string newUsername = 2;
+  string password = 3;
+}
+
+message UserUpdateUsernameResponse {
+  bool success = 1;
+}
+
+// UserUpdatePassword
+message UserUpdatePasswordRequest {
+  string username = 1;
+  string oldPassword = 2;
+  string newPassword = 3;
+}
+
+message UserUpdatePasswordResponse {
+  bool success = 1;
+}
+
+// UserCreate
+message UserCreateRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message UserCreateResponse {
+  bool success = 1;
+}
+
+// Access
+message UserAccessRequest {
+  string accessToken = 1;
+}
+
+message UserAccessResponse {
+  string username = 1;
+}
+
+// Auth
+message UserAuthRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message UserAuthResponse {
+  string accessToken = 1;
+  string refreshToken = 2;
+}
+
+service Auth {
+  rpc UserAuth(UserAuthRequest) returns(UserAuthResponse) {}
+  rpc UserCreate(UserCreateRequest) returns(UserCreateResponse) {}
+  rpc UserAccess(UserAccessRequest) returns(UserAccessResponse) {}
+  rpc UserUpdatePassword(UserUpdatePasswordRequest) returns(UserUpdatePasswordResponse) {}
+  rpc UserUpdateUsername(UserUpdateUsernameRequest) returns(UserUpdateUsernameResponse) {}
+  rpc UserDelete(UserDeleteRequest) returns(UserDeleteResponse) {}
+}
+
+// protoc -I protos --go_out=plugins=grpc:protos protos/auth.proto
+// evans auth.proto -p 8080
