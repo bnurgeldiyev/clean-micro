@@ -2,21 +2,29 @@ package user
 
 import (
 	"clean-micro/internal/adapters/api/user"
+	"clean-micro/internal/adapters/service/cache"
+	"clean-micro/internal/config"
 	"clean-micro/pkg/helpers"
 	"context"
 	"fmt"
+	"github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"time"
 )
 
 type service struct {
 	storage Storage
+	cache   *cache.RedisService
 }
 
-func NewService(storage Storage) user.Service {
-	return &service{storage: storage}
+func NewService(storage Storage, cache *cache.RedisService) user.Service {
+	return &service{
+		storage: storage,
+		cache:   cache,
+	}
 }
 
 func (s *service) Auth(ctx context.Context, username, password string) (item *user.Auth, err error) {
@@ -78,14 +86,21 @@ func (s *service) Auth(ctx context.Context, username, password string) (item *us
 		RefreshToken: refreshToken.String(),
 	}
 
+	err = s.cache.UserSetRefreshToken(ctx, usr.ID, refreshToken, time.Duration(config.Conf.Jwt.RefreshTokenExpiry)*time.Minute)
+	if err != nil {
+		eMsg := "error in s.cache.UserSetRefreshToken()"
+		clog.WithError(err).Error(eMsg)
+		err = status.Error(codes.Code(500), eMsg)
+		return
+	}
+
 	return
 }
 
 func (s *service) Access(ctx context.Context, accessToken string) (username string, err error) {
 
 	clog := log.WithContext(ctx).WithFields(log.Fields{
-		"method":   "service.Access",
-		"username": username,
+		"method": "service.Access",
 	})
 
 	id, err1 := helpers.VerifyAccessToken(accessToken)
@@ -272,6 +287,63 @@ func (s *service) UpdatePassword(ctx context.Context, username, oldPassword, new
 	pwdHash := string(pwdHashBytes)
 
 	err = s.storage.UpdatePasswordByID(ctx, pwdHash, usr.ID)
+
+	return
+}
+
+func (s *service) UpdateAccessToken(ctx context.Context, accessToken string, refreshToken uuid.UUID) (token string, err error) {
+
+	clog := log.WithContext(ctx).WithFields(log.Fields{
+		"method": "service.UpdateAccessToken",
+	})
+
+	id, err1 := helpers.VerifyAccessToken(accessToken)
+	if err1 != nil {
+		eMsg := "error in helpers.VerifyAccessToken"
+		clog.WithError(err1).Error(eMsg)
+		err = status.Error(codes.Code(401), eMsg)
+		return
+	}
+
+	usr, err1 := s.storage.GetByID(ctx, id)
+	if err1 != nil {
+		eMsg := "error in api.access.UserGetByUsername"
+		clog.WithError(err1).Error(eMsg)
+		err = status.Error(codes.Code(500), eMsg)
+		return
+	}
+
+	cacheRefreshToken, err1 := s.cache.UserGetRefreshToken(ctx, id)
+	if err1 != nil {
+		eMsg := "error in s.cache.UserGetRefreshToken()"
+		clog.WithError(err1).Error(eMsg)
+		err = status.Error(codes.Code(500), eMsg)
+		return
+	}
+
+	if cacheRefreshToken != refreshToken {
+		eMsg := "invalid refreshToken"
+		clog.Error(eMsg)
+		err = status.Error(codes.Code(400), eMsg)
+		return
+	}
+
+	if usr == nil {
+		eMsg := fmt.Sprintf("User with id=<%s> not found", id)
+		clog.Error(eMsg)
+		err = status.Error(codes.Code(403), eMsg)
+		return
+	}
+
+	tok, err1 := helpers.GenerateAccessToken(id)
+	if err1 != nil {
+		eMsg := "error in helpers.GenerateAccessToken(id)"
+		clog.WithError(err1).Error(eMsg)
+		err = status.Error(codes.Code(500), eMsg)
+		return
+	}
+
+	token = tok
 
 	return
 }

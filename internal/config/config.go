@@ -17,6 +17,8 @@ type Jwt struct {
 type Config struct {
 	DbConn        string `json:"db_conn"`
 	DbMaxConn     int    `json:"db_max_conn"`
+	RedisConn     string `json:"redis_conn"`
+	RedisDB       int    `json:"redis_db"`
 	EndpointUrl   string `json:"endpoint_url"`
 	ListenAddress string `json:"listen_address"`
 	Jwt           *Jwt   `json:"jwt"`
@@ -78,6 +80,8 @@ func createDefaultConfig(source string) (err error) {
 	c := Config{
 		DbConn:        "user=test password=test dbname=test sslmode=disable",
 		DbMaxConn:     20,
+		RedisConn:     "127.0.0.1:6379",
+		RedisDB:       0,
 		EndpointUrl:   "http://127.0.0.1:8081",
 		ListenAddress: "127.0.0.1:8888",
 		Jwt: &Jwt{

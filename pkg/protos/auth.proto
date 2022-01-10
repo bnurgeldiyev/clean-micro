@@ -65,6 +65,16 @@ message UserAuthResponse {
   string refreshToken = 2;
 }
 
+// AccessTokenUpdate
+message UpdateAccessTokenRequest {
+  string accessToken = 1;
+  string refreshToken = 2;
+}
+
+message UpdateAccessTokenResponse {
+  string accessToken = 1;
+}
+
 service Auth {
   rpc UserAuth(UserAuthRequest) returns(UserAuthResponse) {}
   rpc UserCreate(UserCreateRequest) returns(UserCreateResponse) {}
@@ -72,6 +82,7 @@ service Auth {
   rpc UserUpdatePassword(UserUpdatePasswordRequest) returns(UserUpdatePasswordResponse) {}
   rpc UserUpdateUsername(UserUpdateUsernameRequest) returns(UserUpdateUsernameResponse) {}
   rpc UserDelete(UserDeleteRequest) returns(UserDeleteResponse) {}
+  rpc UserUpdateAccessToken(UpdateAccessTokenRequest) returns(UpdateAccessTokenResponse) {}
 }
 
 // protoc -I protos --go_out=plugins=grpc:protos protos/auth.proto

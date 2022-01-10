@@ -2,6 +2,7 @@ package main
 
 import (
 	"clean-micro/internal/adapters/api"
+	"clean-micro/internal/adapters/service/cache"
 	"clean-micro/internal/composites"
 	"clean-micro/internal/config"
 	"clean-micro/pkg/logging"
@@ -40,7 +41,9 @@ func setupServer(signalChan chan os.Signal, conf *config.Config) {
 		log.WithError(err).Panic("error in composites.NewPostgresComposite()")
 	}
 
-	userComposite, err := composites.NewUserComposite(postgresComposite)
+	redisService := cache.NewRedisService(conf.RedisConn, conf.RedisDB, 8, 256)
+
+	userComposite, err := composites.NewUserComposite(postgresComposite, redisService)
 	if err != nil {
 		log.WithError(err).Panic("composites.NewUserComposite()")
 	}

@@ -3,7 +3,8 @@ package composites
 import (
 	"clean-micro/internal/adapters/api"
 	user2 "clean-micro/internal/adapters/api/user"
-	user3 "clean-micro/internal/adapters/db/user"
+	user3 "clean-micro/internal/adapters/pgdb/user"
+	"clean-micro/internal/adapters/service/cache"
 	"clean-micro/internal/domain/user"
 )
 
@@ -13,9 +14,9 @@ type UserComposite struct {
 	Handler api.AuthServer
 }
 
-func NewUserComposite(postgresComposite *PostgresComposite) (*UserComposite, error) {
+func NewUserComposite(postgresComposite *PostgresComposite, cache *cache.RedisService) (*UserComposite, error) {
 	storage := user3.NewStorage(postgresComposite.DB)
-	service := user.NewService(storage)
+	service := user.NewService(storage, cache)
 	handler := user2.NewUserHandler(service)
 
 	return &UserComposite{

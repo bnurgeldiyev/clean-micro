@@ -201,3 +201,44 @@ func (handler *userHandler) UserDelete(ctx context.Context, in *api.UserDeleteRe
 
 	return
 }
+
+func (handler *userHandler) UserUpdateAccessToken(ctx context.Context, in *api.UpdateAccessTokenRequest) (item *api.UpdateAccessTokenResponse, err error) {
+
+	clog := handleGrpc("UserUpdateAccessToken", ctx)
+
+	accessToken := in.GetAccessToken()
+	refreshTokenStr := in.GetRefreshToken()
+
+	m := make(map[string]string)
+	m["access_token"] = accessToken
+	m["refresh_token"] = refreshTokenStr
+
+	names, err1 := helpers.VerifyMinLen(m)
+	if err1 != nil {
+		eMsg := fmt.Sprintf("FormValue's <%s> is empty", names)
+		clog.Error(eMsg)
+		err = status.Error(codes.Code(400), eMsg)
+		return
+	}
+
+	refreshToken, err1 := helpers.ConvertStringToUUID(refreshTokenStr)
+	if err1 != nil {
+		eMsg := "error in helpers.ConvertStringToUUID()"
+		clog.WithError(err1).Error(eMsg)
+		err = status.Error(codes.Code(500), eMsg)
+		return
+	}
+
+	token, err := handler.apiService.UpdateAccessToken(ctx, accessToken, refreshToken)
+	if err != nil {
+		eMsg := "error in handler.apiService.UpdateAccessToken"
+		clog.WithError(err).Error(eMsg)
+		return
+	}
+
+	item = &api.UpdateAccessTokenResponse{
+		AccessToken: token,
+	}
+
+	return
+}
