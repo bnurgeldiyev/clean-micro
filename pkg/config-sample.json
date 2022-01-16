@@ -1,0 +1,13 @@
+{
+  "db_conn": "user=db_user password=db_password dbname=db_name sslmode=disable",
+  "redis_conn": "127.0.0.1:6379",
+  "redis_db": 0,
+  "db_max_conn": 20,
+  "endpoint_url": "http://127.0.0.1:8881",
+  "listen_address": "127.0.0.1:8888",
+  "jwt": {
+    "access_token_expiry": 20,
+    "refresh_token_expiry": 30,
+    "secret": "secret"
+  }
+}
