@@ -2,10 +2,13 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
+
+	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
-	"time"
 )
 
 type Jwt struct {
@@ -28,20 +31,11 @@ var Conf *Config
 var isFirst bool = true
 
 func ReadConfig(source string) (err error) {
-	if !isFirst {
-		for {
-			if Conf != nil {
-				break
-			}
-			time.Sleep(10 * time.Millisecond)
-		}
-		if Conf != nil {
-			return nil
-		} else {
-			return errors.New("error Conf not found!!!")
-		}
+	err = godotenv.Load("../pkg/.env")
+	if err != nil {
+		return
 	}
-	isFirst = false
+
 	var raw []byte
 	raw, err = ioutil.ReadFile(source)
 	if err != nil {
@@ -64,6 +58,7 @@ func ReadConfig(source string) (err error) {
 			return
 		}
 	}
+
 	err = json.Unmarshal(raw, &Conf)
 	if err != nil {
 		eMsg := "error parsing config from json"
@@ -72,6 +67,22 @@ func ReadConfig(source string) (err error) {
 		Conf = nil
 		return
 	}
+
+	m := make(map[string]string)
+
+	m["HOST"] = os.Getenv("DB_HOST")
+	m["PORT"] = os.Getenv("DB_PORT")
+	m["USER"] = os.Getenv("DB_USER")
+	m["PASSWORD"] = os.Getenv("DB_PASSWORD")
+	m["DATABASE"] = os.Getenv("DB_DATABASE")
+	m["LISTEN_ADDR"] = os.Getenv("LISTEN_ADDR")
+	m["REDIS_HOST"] = os.Getenv("REDIS_HOST")
+	m["REDIS_PORT"] = os.Getenv("REDIS_PORT")
+
+	Conf.DbConn = fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=disable", m["HOST"], m["PORT"], m["USER"], m["PASSWORD"], m["DATABASE"])
+	Conf.ListenAddress = m["LISTEN_ADDR"]
+	Conf.RedisConn = fmt.Sprintf("%v:%v", m["REDIS_HOST"], m["REDIS_PORT"])
+
 	return
 }
 

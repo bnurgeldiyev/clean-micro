@@ -7,12 +7,13 @@ import (
 	"clean-micro/internal/config"
 	"clean-micro/pkg/logging"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -53,6 +54,7 @@ func setupServer(signalChan chan os.Signal, conf *config.Config) {
 
 	go startServer(grpcServer, listener)
 
+	fmt.Println(conf.DbConn)
 	fmt.Println("<--START-SERVER-->", conf.ListenAddress)
 	for {
 		select {
