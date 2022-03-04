@@ -2,10 +2,11 @@ package helpers
 
 import (
 	"errors"
-	"github.com/gofrs/uuid"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/gofrs/uuid"
 )
 
 func GetRemoteAddress(r *http.Request) string {

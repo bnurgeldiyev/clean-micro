@@ -2,6 +2,8 @@ package composites
 
 import (
 	"clean-micro/pkg/pgdb"
+	"fmt"
+
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 )
@@ -11,6 +13,8 @@ type PostgresComposite struct {
 }
 
 func NewPostgresComposite(dbConn string, dbMaxConn int) (*PostgresComposite, error) {
+
+	fmt.Println(dbConn)
 
 	conn, err := pgdb.NewPgConn(dbConn, dbMaxConn)
 	if err != nil {

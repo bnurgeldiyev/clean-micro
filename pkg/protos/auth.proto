@@ -75,6 +75,15 @@ message UpdateAccessTokenResponse {
   string accessToken = 1;
 }
 
+// Ping
+message PingRequest {
+  string ping = 1;
+}
+
+message PingResponse {
+  string pong = 2;
+}
+
 service Auth {
   rpc UserAuth(UserAuthRequest) returns(UserAuthResponse) {}
   rpc UserCreate(UserCreateRequest) returns(UserCreateResponse) {}
@@ -83,6 +92,7 @@ service Auth {
   rpc UserUpdateUsername(UserUpdateUsernameRequest) returns(UserUpdateUsernameResponse) {}
   rpc UserDelete(UserDeleteRequest) returns(UserDeleteResponse) {}
   rpc UserUpdateAccessToken(UpdateAccessTokenRequest) returns(UpdateAccessTokenResponse) {}
+  rpc Ping(PingRequest) returns(PingResponse) {}
 }
 
 // protoc -I protos --go_out=plugins=grpc:protos protos/auth.proto

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"strings"
 )
 
 func (handler *userHandler) UserAuth(ctx context.Context, in *api.UserAuthRequest) (item *api.UserAuthResponse, err error) {
@@ -238,6 +239,25 @@ func (handler *userHandler) UserUpdateAccessToken(ctx context.Context, in *api.U
 
 	item = &api.UpdateAccessTokenResponse{
 		AccessToken: token,
+	}
+
+	return
+}
+
+func (handler *userHandler) Ping(ctx context.Context, in *api.PingRequest) (item *api.PingResponse, err error) {
+
+	ping := in.GetPing()
+
+	if strings.ToUpper(ping) == "PING" {
+		item = &api.PingResponse{
+			Pong: "PONG",
+		}
+
+		return
+	} else {
+		item = &api.PingResponse{
+			Pong: "Err",
+		}
 	}
 
 	return
